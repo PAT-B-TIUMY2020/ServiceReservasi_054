@@ -12,7 +12,7 @@ namespace ServiceReservasi
     // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "Service1" in both code and config file together.
     public class Service1 : IService1
     {
-        string conString = "Data Source=DESKTOP-GB128HP;Initial Catalog=WCFReservasi;Persist Security Info=True; User ID=sa;Password=FErdy277";
+        string conString = "Data Source=desktop-gb128hp\\mssql2014;Initial Catalog=WCFReservasi;Persist Security Info=True; User ID=sa;Password=FErdy277";
         SqlConnection connection;
         SqlCommand com;
         public string deletePemesanan(string IDPemesanan)
@@ -62,15 +62,139 @@ namespace ServiceReservasi
             }
             return LokasiFull;
         }
-
-        public string editPemesanan(string IDPemesanan, string NamaCustomer)
+        public string editPemesanan(string IDPemesanan, string NamaCustomer, string NoTelpon)
         {
-            throw new NotImplementedException();
+            string a = "gagal";
+            try
+            {
+                string sql = "Update dbo.Pemesanan set NamaCustomer = '" + NamaCustomer + "', NoTelpon = '" + NoTelpon + "' where ID_reservasi = '" + IDPemesanan + "' ";
+                connection = new SqlConnection(conString);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+
+                a = "sukses";
+            }
+            catch (Exception es)
+            {
+                Console.WriteLine(es);
+            }
+            return a;
         }
 
         public string GetData(int value)
         {
             return string.Format("You entered: {0}", value);
+        }
+
+        public string Login(string username, string password)
+        {
+            string kategori = "";
+
+            string sql = "select Kategori from Login where Username='" + username + "' and Password='" + password + "'";
+            connection = new SqlConnection(conString);
+            com = new SqlCommand(sql, connection);
+            connection.Open();
+            SqlDataReader reader = com.ExecuteReader();
+            while(reader.Read())
+            {
+                kategori = reader.GetString(0);
+            }
+            return kategori;
+        }
+
+        public string Register(string username, string password, string kategori)
+        {
+            try
+            {
+                string sql = "Insert into Login values ('" + username + "', '" + password + "', '" + kategori + "')";
+                connection = new SqlConnection(conString);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+                return "sukses";
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
+        }
+
+        public string UpdateRegister(string username, string password, string kategori, int id)
+        {
+            try
+            {
+                string sql2 = "update Login SET Username'" + username + "', Password= '" + password + "', Kategori='" + kategori + "' where ID_login = " + id + "";
+                connection = new SqlConnection(conString);
+                com = new SqlCommand(sql2, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+                return "sukses";
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
+        }
+
+        public string DeleteRegister(string username)
+        {
+            try
+            {
+                int id = 0;
+                string sql = "select ID_login from dbo.Login where Username = '" + username + "'";
+                connection = new SqlConnection(conString);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                SqlDataReader reader = com.ExecuteReader();
+                while (reader.Read())
+                {
+                    id = reader.GetInt32(0);
+                }
+                connection.Close();
+                string sql2 = "delete from Login where ID_login=" + id + "";
+                connection = new SqlConnection(conString);
+                com = new SqlCommand(sql2, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+                return "sukses";
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
+        }
+
+        public List<DataRegister> DataRegist()
+        {
+            List<DataRegister> list = new List<DataRegister>();
+            try
+            {
+                string sql = "select ID_login, Username, Password, Kategori from Login";
+                connection = new SqlConnection(conString);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                SqlDataReader reader = com.ExecuteReader();
+                while (reader.Read())
+                {
+                    DataRegister data = new DataRegister();
+                    data.id = reader.GetInt32(0);
+                    data.username = reader.GetString(1);
+                    data.password = reader.GetString(2);
+                    data.kategori = reader.GetString(3);
+                    list.Add(data);
+                }
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                e.ToString();
+            }
+            return list;
         }
 
         public CompositeType GetDataUsingDataContract(CompositeType composite)
